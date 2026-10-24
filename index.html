@@ -1,0 +1,1166 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Lunar Guardian 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --cyan: #5ce1ff;
+  --amber: #ffb347;
+  --red: #ff5a5a;
+  --green: #5dff9a;
+  --bg: #05070b;
+  --panel: rgba(6, 14, 22, 0.78);
+  --line: rgba(92, 225, 255, 0.35);
+  --text: #d7f4ff;
+  --muted: #7aa0b3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Share Tech Mono", monospace;
+}
+
+#viewport,
+#viewport canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.hud-top,
+.hud-left,
+.hud-right,
+.hud-bottom,
+#wrist,
+#extract-hud,
+#tactical-map,
+#hub {
+  pointer-events: none;
+}
+
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  backdrop-filter: blur(8px);
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--cyan);
+  margin-bottom: 6px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hud-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: grid;
+  grid-template-columns: 280px 1fr 240px;
+  gap: 12px;
+}
+
+.telemetry-strip {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.telemetry-strip span {
+  display: block;
+}
+
+.hud-left {
+  position: absolute;
+  top: 120px;
+  left: 16px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hud-right {
+  position: absolute;
+  top: 120px;
+  right: 16px;
+  width: 220px;
+}
+
+#objectives {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#objectives li.done {
+  color: var(--green);
+  text-decoration: line-through;
+}
+
+#objectives li.active {
+  color: var(--amber);
+}
+
+#layer-legend ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#layer-legend.clickable {
+  pointer-events: auto;
+}
+
+#layer-legend li {
+  cursor: pointer;
+}
+
+#layer-legend li.active-layer {
+  color: var(--cyan);
+}
+
+#elev-profile {
+  width: 220px;
+  height: 52px;
+  border: 1px solid var(--line);
+  background: #071018;
+  display: block;
+  margin-top: 8px;
+}
+
+#grid-panel {
+  margin-top: 8px;
+}
+
+#minimap {
+  width: 220px;
+  height: 220px;
+  border: 1px solid var(--cyan);
+  background: #071018;
+  display: block;
+}
+
+.mini-caption {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-align: center;
+  margin: 6px 0 10px;
+}
+
+.bar {
+  height: 8px;
+  background: #13202a;
+  border: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+
+.bar > div {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--amber));
+}
+
+.bar.fuel > div {
+  background: linear-gradient(90deg, #2a6dff, var(--cyan));
+}
+
+.hud-bottom {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+}
+
+#crosshair span {
+  position: absolute;
+  background: var(--cyan);
+  opacity: 0.7;
+}
+
+#crosshair span:nth-child(1),
+#crosshair span:nth-child(2) {
+  width: 10px;
+  height: 1px;
+  top: 9px;
+}
+
+#crosshair span:nth-child(1) {
+  left: -8px;
+}
+#crosshair span:nth-child(2) {
+  right: -8px;
+}
+#crosshair span:nth-child(3),
+#crosshair span:nth-child(4) {
+  width: 1px;
+  height: 10px;
+  left: 9px;
+}
+#crosshair span:nth-child(3) {
+  top: -8px;
+}
+#crosshair span:nth-child(4) {
+  bottom: -8px;
+}
+
+.frame-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--cyan);
+  opacity: 0.5;
+}
+.frame-corner.tl {
+  top: 8px;
+  left: 8px;
+  border-right: 0;
+  border-bottom: 0;
+}
+.frame-corner.tr {
+  top: 8px;
+  right: 8px;
+  border-left: 0;
+  border-bottom: 0;
+}
+.frame-corner.bl {
+  bottom: 8px;
+  left: 8px;
+  border-right: 0;
+  border-top: 0;
+}
+.frame-corner.br {
+  bottom: 8px;
+  right: 8px;
+  border-left: 0;
+  border-top: 0;
+}
+
+#wrist {
+  position: absolute;
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%);
+  width: min(520px, 90vw);
+  pointer-events: none;
+}
+
+.wrist-inner {
+  background: linear-gradient(180deg, rgba(20, 60, 80, 0.85), rgba(6, 16, 24, 0.9));
+  border: 1px solid var(--cyan);
+  box-shadow: 0 0 40px rgba(92, 225, 255, 0.18);
+  padding: 14px 16px;
+}
+
+.wrist-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: var(--amber);
+  font-size: 12px;
+}
+
+#extract-hud {
+  position: absolute;
+  right: 16px;
+  bottom: 70px;
+  width: 340px;
+}
+
+.extract-panel {
+  background: var(--panel);
+  border: 1px solid var(--amber);
+  padding: 14px;
+}
+
+.gauges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0 12px;
+  font-size: 12px;
+}
+
+.gauges b {
+  display: block;
+  color: var(--amber);
+  font-size: 16px;
+}
+
+#tactical-map {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+#tactical-map.hidden {
+  display: none !important;
+}
+
+.map-frame {
+  background: #071018;
+  border: 1px solid var(--cyan);
+  padding: 14px;
+}
+
+#map-canvas {
+  display: block;
+  background: #0b1520;
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  pointer-events: auto;
+}
+
+#close-map {
+  pointer-events: auto;
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  padding: 6px 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.map-footer {
+  display: flex;
+  gap: 18px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#hub {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  overflow: auto;
+}
+
+.hub-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(92, 225, 255, 0.12), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(255, 179, 71, 0.08), transparent 40%),
+    rgba(5, 7, 11, 0.58);
+  backdrop-filter: blur(2px);
+}
+
+.hub-content {
+  position: relative;
+  max-width: 980px;
+  margin: 48px auto;
+  padding: 0 24px 60px;
+}
+
+.eyebrow {
+  color: var(--cyan);
+  letter-spacing: 0.28em;
+  font-size: 12px;
+}
+
+h1 {
+  font-family: Orbitron, sans-serif;
+  font-size: clamp(32px, 6vw, 64px);
+  margin: 8px 0 6px;
+  letter-spacing: 0.08em;
+}
+
+.tagline {
+  color: var(--muted);
+  margin-bottom: 28px;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 20px;
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice {
+  pointer-events: auto;
+  text-align: left;
+  background: rgba(8, 18, 28, 0.9);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: inherit;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.choice.active {
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan);
+}
+
+.choice small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.briefing {
+  margin: 22px 0;
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  min-height: 90px;
+  background: var(--panel);
+}
+
+#launch-btn {
+  pointer-events: auto;
+  background: var(--cyan);
+  color: #041016;
+  border: 0;
+  font-family: Orbitron, sans-serif;
+  letter-spacing: 0.14em;
+  padding: 14px 22px;
+  cursor: pointer;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: var(--amber);
+  letter-spacing: 0.18em;
+  font-size: 18px;
+  text-shadow: 0 0 18px rgba(255, 179, 71, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#toast.show {
+  opacity: 1;
+}
+
+#hub-preview {
+  width: 100%;
+  height: 180px;
+  display: block;
+  border: 1px solid var(--line);
+  background: #071018;
+  margin-top: 8px;
+}
+
+.hub-preview-cap {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+#debrief {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 10, 0.72);
+  pointer-events: auto;
+  z-index: 20;
+}
+
+#debrief.hidden {
+  display: none !important;
+}
+
+.debrief-panel {
+  width: min(560px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--cyan);
+  padding: 22px 24px;
+}
+
+.debrief-panel h2 {
+  font-family: Orbitron, sans-serif;
+  font-size: 22px;
+  margin: 6px 0 10px;
+}
+
+#debrief-body {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 12px;
+  border: 1px solid var(--line);
+}
+
+#debrief-hub {
+  margin-top: 14px;
+  pointer-events: auto;
+  background: var(--cyan);
+  color: #041016;
+  border: 0;
+  font-family: Orbitron, sans-serif;
+  letter-spacing: 0.12em;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+
+.compact {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+@media (max-width: 980px) {
+  .hud-top {
+    grid-template-columns: 1fr;
+  }
+  .hud-left,
+  .hud-right {
+    display: none;
+  }
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+  .hud-bottom {
+    display: none;
+  }
+}
+
+/* Clean play screen: hide objectives, spectral layers, unit power and grid panels. */
+.hud-left,
+#unit-status,
+#grid-panel {
+  display: none !important;
+}
+
+/* ---------- Title screen ---------- */
+#title {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+#title.hidden {
+  display: none !important;
+}
+.title-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(2, 5, 9, 0.05) 0%, rgba(2, 5, 9, 0.55) 70%, rgba(2, 5, 9, 0.85) 100%),
+    linear-gradient(to bottom, rgba(2, 5, 9, 0.55), transparent 35%, transparent 65%, rgba(2, 5, 9, 0.7));
+}
+.title-content {
+  position: relative;
+  text-align: center;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: titleIn 1.6s ease-out both;
+}
+.title-name {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 10px 0 6px;
+  min-height: 0;
+  line-height: 0.95;
+  font-size: clamp(44px, 10vw, 118px);
+  letter-spacing: 0.14em;
+  text-shadow: 0 0 40px rgba(92, 225, 255, 0.35), 0 4px 30px rgba(0, 0, 0, 0.7);
+}
+.title-name span:last-child {
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+}
+.title-content .tagline {
+  letter-spacing: 0.12em;
+  margin: 0 0 26px;
+}
+#start-sim {
+  pointer-events: auto;
+  background: rgba(92, 225, 255, 0.1);
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  font-family: Orbitron, sans-serif;
+  letter-spacing: 0.24em;
+  font-size: 15px;
+  padding: 16px 34px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+#start-sim:hover,
+#start-sim:focus-visible {
+  background: var(--cyan);
+  color: #041016;
+  box-shadow: 0 0 34px rgba(92, 225, 255, 0.55);
+  outline: none;
+}
+.title-foot {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+}
+@keyframes titleIn {
+  from { opacity: 0; transform: translateY(14px); letter-spacing: 0.3em; }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Pause / resume page ---------- */
+#pause {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 10, 0.72);
+  pointer-events: auto;
+  z-index: 25;
+}
+#pause.hidden {
+  display: none !important;
+}
+.pause-panel {
+  width: min(620px, 92vw);
+}
+.pause-label {
+  margin-top: 14px;
+}
+#pause-objectives {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#pause-objectives li {
+  padding: 10px 12px 10px 38px;
+  position: relative;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+#pause-objectives li::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--muted);
+}
+#pause-objectives li.active {
+  color: var(--text);
+  border-color: var(--amber);
+}
+#pause-objectives li.active::before {
+  border-color: var(--amber);
+  background: rgba(255, 179, 71, 0.25);
+}
+#pause-objectives li.done {
+  color: var(--green);
+  border-color: rgba(93, 255, 154, 0.4);
+}
+#pause-objectives li.done::before {
+  border-color: var(--green);
+  background: var(--green);
+}
+.pause-keys {
+  margin-top: 14px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.pause-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+#resume-btn,
+#pause-hub {
+  pointer-events: auto;
+  background: var(--cyan);
+  color: #041016;
+  border: 1px solid var(--cyan);
+  font-family: Orbitron, sans-serif;
+  letter-spacing: 0.14em;
+  padding: 12px 20px;
+  cursor: pointer;
+}
+#pause-hub.ghost {
+  background: transparent;
+  color: var(--cyan);
+}
+
+
+/* ---- Outpost resources, route comparison, tutorial coach, knowledge check ---- */
+.op-row {
+  display: grid;
+  grid-template-columns: 34px 1fr 62px;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.op-row b {
+  color: var(--text);
+  font-weight: 400;
+  text-align: right;
+  font-size: 11px;
+}
+.op-row .bar {
+  height: 6px;
+  margin: 0;
+}
+.op-note {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+#op-endure.warn,
+#op-flow.warn {
+  color: var(--amber);
+}
+#op-endure.bad {
+  color: var(--red);
+}
+#route-compare {
+  padding: 8px 14px 0;
+  font-size: 12px;
+  color: var(--text);
+}
+#route-compare table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Share Tech Mono", monospace;
+}
+#route-compare th,
+#route-compare td {
+  padding: 2px 8px;
+  text-align: right;
+  border-bottom: 1px solid rgba(92, 225, 255, 0.12);
+}
+#route-compare th:first-child,
+#route-compare td:first-child {
+  text-align: left;
+  color: var(--muted);
+}
+#route-compare th {
+  color: var(--cyan);
+  font-weight: 400;
+}
+#route-compare .best {
+  color: var(--green);
+}
+#route-compare .note {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+#coach {
+  position: fixed;
+  left: 50%;
+  bottom: 84px;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  max-width: min(720px, 92vw);
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--cyan);
+  color: var(--text);
+  font-family: "Share Tech Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+}
+#coach button,
+.kc-opt {
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  font-family: "Share Tech Mono", monospace;
+  cursor: pointer;
+}
+#coach button:hover,
+.kc-opt:hover {
+  border-color: var(--cyan);
+}
+#knowledge-check {
+  margin: 12px 0;
+  text-align: left;
+}
+#knowledge-check .kc-q {
+  margin-bottom: 8px;
+}
+.kc-opt {
+  display: block;
+  width: 100%;
+  margin: 4px 0;
+  text-align: left;
+  padding: 8px 10px;
+}
+.kc-opt.right {
+  border-color: var(--green);
+  color: var(--green);
+}
+.kc-opt.wrong {
+  border-color: var(--red);
+  color: var(--red);
+}
+.kc-why {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.brief-list {
+  margin: 4px 0 8px 16px;
+  padding: 0;
+  font-size: 12px;
+}
+.brief-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 18px;
+}
+
+/* Debrief now carries resources, events and a knowledge check: let it scroll. */
+.debrief-panel {
+  width: min(760px, 94vw);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+#debrief-body {
+  max-height: 44vh;
+  overflow-y: auto;
+}
+#briefing {
+  max-height: 44vh;
+  overflow-y: auto;
+}
+
+</style>
+
+    <div id="viewport"></div>
+
+    <div id="hud" class="hidden">
+      <div class="frame-corner tl"></div>
+      <div class="frame-corner tr"></div>
+      <div class="frame-corner bl"></div>
+      <div class="frame-corner br"></div>
+
+      <header class="hud-top">
+        <div class="panel">
+          <div class="label">MISSION</div>
+          <div id="mission-title">STANDBY</div>
+          <div id="mission-phase" class="muted">NEAR SIDE COMMAND</div>
+        </div>
+        <div class="panel telemetry-strip">
+          <div>
+            <span class="label">LAT</span>
+            <span id="tel-lat">00.000</span>
+          </div>
+          <div>
+            <span class="label">LON</span>
+            <span id="tel-lon">00.000</span>
+          </div>
+          <div>
+            <span class="label">ELV</span>
+            <span id="tel-elv">000 m</span>
+          </div>
+          <div>
+            <span class="label">LATN</span>
+            <span id="tel-latn">012 ms</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="label">THRUST THERMAL</div>
+          <div class="bar">
+            <div id="heat-fill"></div>
+          </div>
+          <div class="label">MMU PROPELLANT</div>
+          <div class="bar fuel">
+            <div id="fuel-fill"></div>
+          </div>
+        </div>
+      </header>
+
+      <aside class="hud-left">
+        <div class="panel">
+          <div class="label">OBJECTIVES</div>
+          <ul id="objectives"></ul>
+        </div>
+        <div class="panel compact" id="outpost-panel">
+          <div class="label">HABITAT · <span id="op-mode">BALANCED</span> [B]</div>
+          <div class="op-row"><span>PWR</span><div class="bar"><div id="op-batt"></div></div><b id="op-batt-v">--</b></div>
+          <div class="op-row"><span>O2</span><div class="bar"><div id="op-o2"></div></div><b id="op-o2-v">--</b></div>
+          <div class="op-row"><span>H2O</span><div class="bar"><div id="op-h2o"></div></div><b id="op-h2o-v">--</b></div>
+          <div class="op-row"><span>FOOD</span><div class="bar"><div id="op-food"></div></div><b id="op-food-v">--</b></div>
+          <div class="op-row"><span>DOSE</span><div class="bar"><div id="op-dose"></div></div><b id="op-dose-v">--</b></div>
+          <div class="muted" id="op-flow">--</div>
+          <div class="muted" id="op-endure">--</div>
+          <div class="muted op-note">GAMEPLAY PARAMETERS · NOT NASA SPECS</div>
+        </div>
+        <div class="panel clickable" id="layer-legend">
+          <div class="label">SPECTRAL LAYERS [1–5]</div>
+          <ol>
+            <li data-layer="1">Elevation</li>
+            <li data-layer="2">Slope Angle</li>
+            <li data-layer="3">Illumination / Thermal</li>
+            <li data-layer="4">Obstacle Density</li>
+            <li data-layer="5">Science Targets + Safety Index</li>
+          </ol>
+        </div>
+      </aside>
+
+      <aside class="hud-right">
+        <canvas id="minimap" width="220" height="220"></canvas>
+        <div class="mini-caption">LIVE TACTICAL · PRESS M</div>
+        <div class="panel compact" id="unit-status"></div>
+        <div class="panel compact" id="grid-panel">
+          <div class="label">ROVER TEAM BATTERY (AVG)</div>
+          <div class="bar"><div id="grid-fill"></div></div>
+          <div class="muted" id="safety-idx">SAFETY INDEX —</div>
+          <div class="muted" id="zone-r">PRESERVE R 10 m</div>
+        </div>
+        <canvas id="elev-profile" width="220" height="52"></canvas>
+        <div class="mini-caption">ELEVATION PROFILE</div>
+      </aside>
+
+      <div id="crosshair">
+        <span></span><span></span><span></span><span></span>
+      </div>
+
+      <footer class="hud-bottom">
+        <div>W A S D THRUST</div>
+        <div>SPACE / SHIFT VERTICAL</div>
+        <div>R WRIST</div>
+        <div>E EXTRACT</div>
+        <div>C ROVER CAM</div>
+        <div>B POWER MODE</div>
+        <div>M MAP</div>
+        <div>ESC PAUSE</div>
+      </footer>
+    </div>
+
+    <div id="wrist" class="hidden">
+      <div class="wrist-inner">
+        <div class="label">MMU WRIST REMOTE · MMSEV LINK</div>
+        <div id="wrist-body">
+          Align with a science target, then press <b>E</b> to begin remote extraction.
+        </div>
+        <div id="wrist-check" class="muted">SURFACE CONTACT · HOVER STABLE · PRESERVATION LOCK</div>
+        <div class="wrist-meta">
+          <span id="wrist-link">LINK: IDLE</span>
+          <span id="wrist-range">RANGE: --</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="extract-hud" class="hidden">
+      <div class="extract-panel">
+        <div class="label">CINEMATIC EXTRACTION · FIXED CAM</div>
+        <div class="gauges">
+          <div>RPM <b id="ex-rpm">0</b></div>
+          <div>TORQUE <b id="ex-torque">0 Nm</b></div>
+          <div>HEAT <b id="ex-heat">0 °C</b></div>
+          <div>DENSITY <b id="ex-dens">0 g/cm³</b></div>
+        </div>
+        <div class="label">CORE PROGRESS</div>
+        <div class="bar">
+          <div id="ex-progress"></div>
+        </div>
+        <div class="muted">A/D modulate RPM · keep heat below 920 °C · W/S feed rate</div>
+      </div>
+    </div>
+
+    <div id="tactical-map" class="hidden">
+      <div class="map-frame">
+        <div class="map-header">
+          <div>
+            <div class="label">NEAR SIDE TACTICAL MAP</div>
+            <div id="map-site">SITE: —</div>
+          </div>
+          <button id="close-map" type="button">CLOSE [M]</button>
+        </div>
+        <canvas id="map-canvas" width="920" height="620"></canvas>
+        <div id="route-compare"></div>
+        <div class="map-footer">
+          <span>EVA</span>
+          <span>MMSEV</span>
+          <span>TARGET</span>
+          <span>HAZARD</span>
+          <span>PRESERVE</span>
+          <span>ROUTE</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="title">
+      <div class="title-vignette"></div>
+      <div class="title-content">
+        <p class="eyebrow">CNSA / NASA JOINT OPERATIONS · LUNAR NEARSIDE</p>
+        <h1 class="title-name"><span>LUNAR</span><span>GUARDIAN</span></h1>
+        <p class="tagline">Jetpack EVA · MMSEV remote extraction · multi-spectral routing</p>
+        <button id="start-sim" type="button">START SIMULATION</button>
+      </div>
+      <div class="title-foot">EARTHRISE OVER THE NEAR SIDE · LIVE SURFACE FEED</div>
+    </div>
+
+    <div id="hub" class="hidden">
+      <div class="hub-bg"></div>
+      <div class="hub-content">
+        <p class="eyebrow">CNSA / NASA JOINT OPERATIONS · LUNAR NEARSIDE</p>
+        <h1>LUNAR GUARDIAN 3D</h1>
+        <p class="tagline">
+          Jetpack EVA · MMSEV remote extraction · multi-spectral routing
+        </p>
+
+        <div class="hub-grid">
+          <section>
+            <div class="label">LANDING SITE</div>
+            <div id="site-list" class="choice-list"></div>
+          </section>
+          <section>
+            <div class="label">MISSION ARCHIVE</div>
+            <div id="mission-list" class="choice-list"></div>
+          </section>
+        </div>
+
+        <div id="briefing" class="briefing"></div>
+        <canvas id="hub-preview" width="920" height="180"></canvas>
+        <div class="mini-caption hub-preview-cap">SITE ELEVATION PREVIEW · SELECT LANDING SITE ABOVE</div>
+        <button id="launch-btn" type="button">START MISSION</button>
+        <p class="hint">
+          Click the viewport after launch to capture look-around. Jetpack only — walking is disabled.
+          Keys 1–5 toggle spectral layers. Press 0 for base albedo. Press B to change habitat power priority.
+        </p>
+      </div>
+    </div>
+
+    <div id="pause" class="hidden">
+      <div class="debrief-panel pause-panel">
+        <div class="label">SIMULATION PAUSED</div>
+        <h2 id="pause-mission">STANDBY</h2>
+        <p id="pause-site" class="muted"></p>
+        <div class="label pause-label">MISSION OBJECTIVES</div>
+        <ul id="pause-objectives"></ul>
+        <div class="pause-keys muted">WASD thrust · Space / Shift vertical · R wrist · E extract · B power mode · C rover cam · M map · 1–5 layers</div>
+        <div class="pause-actions">
+          <button id="resume-btn" type="button">RESUME</button>
+          <button id="pause-hub" type="button" class="ghost">MISSION MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="debrief" class="hidden">
+      <div class="debrief-panel">
+        <div class="label">MISSION DEBRIEF</div>
+        <h2 id="debrief-title">STANDBY</h2>
+        <p id="debrief-status" class="muted"></p>
+        <pre id="debrief-body"></pre>
+        <div id="knowledge-check" class="hidden"></div>
+        <button id="debrief-hub" type="button">RETURN TO HUB</button>
+      </div>
+    </div>
+
+    <div id="coach" class="hidden">
+      <span id="coach-text"></span>
+      <button id="coach-skip" type="button">SKIP TUTORIAL</button>
+    </div>
+
+    <div id="toast"></div>
+<script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+<script type="module" src="./js/main.js"></script>
+
+</body></html>
